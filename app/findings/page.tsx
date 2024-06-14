@@ -2,6 +2,7 @@ import axios from 'axios';
 import { JSDOM } from 'jsdom';
 import Link from 'next/link';
 import { ResultsBlock } from './ResultsBlock';
+import type { Metadata } from 'next';
 
 interface IFindingsProps {
   searchParams: { [key: string]: string };
@@ -11,6 +12,14 @@ interface IGetDataProps {
   url: string;
 }
 
+enum Variants {
+  Bankruptcy = 'Bankruptcy',
+  Fraud = 'Fraud',
+}
+
+export const metadata: Metadata = {
+  title: 'Findings — Wikipedia Bankruptcy/Fraud Scraper',
+};
 
 const getData = async ({ url }: IGetDataProps) => {
   const { data } = await axios.get(url);
@@ -35,8 +44,13 @@ const parseData = (data: string) => {
     .map(paragraph => paragraph.textContent ?? '');
 
   return {
-    bankruptcyContent,
-    fraudContent,
+    findings: [{
+      content: bankruptcyContent,
+      variant: Variants.Bankruptcy,
+    }, {
+      content: fraudContent,
+      variant: Variants.Fraud
+    }],
     subject,
   };
 }
@@ -45,15 +59,12 @@ export default async function Findings({ searchParams }: Readonly<IFindingsProps
   const { url } = searchParams;
   const data = await getData({ url });
 
-  const {
-    bankruptcyContent,
-    fraudContent,
-    subject,
-  } = parseData(data);
+  const { findings, subject } = parseData(data);
 
   return (
     <main>
       <h1>Findings — Wikipedia Bankruptcy/Fraud Scraper</h1>
+
       <dl>
         <dt>Page</dt>
         <dd><a href={url}>{ url }</a></dd>
@@ -63,8 +74,9 @@ export default async function Findings({ searchParams }: Readonly<IFindingsProps
 
       <Link href="/" className="button">Search again</Link>
 
-      <ResultsBlock content={bankruptcyContent} subject={subject} variant="bankruptcy" />
-      <ResultsBlock content={fraudContent} subject={subject} variant="fraud" />
+      {findings.map(({ content, variant }) => (
+        <ResultsBlock content={content} subject={subject} variant={variant} key={variant} />
+      ))}
     </main>
   );
 }

@@ -33,7 +33,7 @@ export const ResultsBlock = ({ content, subject, variant }: IResultsBlockProps) 
       <h2>{variant}</h2>
     
       <p>The page {content.length ? 'appears' : 'does not appear'}
-      {' '}to have information about bankruptcy for { subject }.</p>
+      {' '}to have information about {variant.toLowerCase()} for { subject }.</p>
 
       {content.map(example => (
         <QuotedText key={example}><p>{example}</p></QuotedText>
